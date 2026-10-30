@@ -117,7 +117,7 @@ textarea{min-height:64px;resize:vertical}
 <body>
 <div class="wrap">
   <h1>WG1 Lern-Quiz</h1>
-  <p class="sub">Wirtschaftliche Grundlagen 1 · Tag 1–7</p>
+  <p class="sub">Wirtschaftliche Grundlagen 1 · Skript (alle Kapitel)</p>
 
   <nav class="tabs" id="tabs" role="tablist">
     <button role="tab" data-tab="practice" aria-selected="true">Üben</button>
@@ -146,7 +146,7 @@ textarea{min-height:64px;resize:vertical}
       </div>
       <div class="inline">
         <label class="field"><span>Anzahl Fragen</span>
-          <select id="size"><option>10</option><option selected>25</option><option>40</option><option>60</option></select></label>
+          <select id="size"><option>10</option><option selected>25</option><option>40</option><option>60</option><option>100</option></select></label>
         <label class="field" id="minWrap"><span>Zeit (Minuten)</span><input type="number" id="minutes" min="1" max="180" value="30"></label>
       </div>
       <h3>Themen</h3>
@@ -252,20 +252,21 @@ textarea{min-height:64px;resize:vertical}
 <script src="data.js"></script>
 <script>
 const TAGS = {
-  T1:"Tag 1 · Bedarf & Markt", T2:"Tag 2 · Volkswirtschaft", T3:"Tag 3 · Verträge & Recht",
-  T4:"Tag 4 · Angebote & Kalkulation", T5:"Tag 5 · Wirtschaftlichkeit", T6:"Tag 6 · Markt & Marketing",
-  T7:"Tag 7 · Controlling & Daten", TX:"Eigene Fragen"
+  K1:"1 · Wirtschaften & Märkte", K2:"2 · Volkswirtschaft", K3:"3 · Verträge & Kaufvertrag",
+  K4:"4 · Mängel, Verzug, Mahnwesen", K5:"5 · Kostenrechnung & BAB", K6:"6 · Kalkulation",
+  K7:"7 · Deckungsbeitrag", K8:"8 · Marketing", K9:"9 · Daten & Präsentation", TX:"Eigene Fragen"
 };
-const BUILTIN = RAW.map((r,i)=>({id:"b"+i, tag:r[0], q:r[1], correct:r[2], wrong:r.slice(3,6), exp:r[6]}));
+function hid(s){ let h=5381; for(let i=0;i<s.length;i++) h=((h<<5)+h+s.charCodeAt(i))|0; return "b"+(h>>>0).toString(36); }
+const BUILTIN = RAW.map(r=>({id:hid(r[1]), tag:r[0], q:r[1], correct:r[2], wrong:r.slice(3,6), exp:r[6]}));
 
 /* ---------- Speicher (localStorage mit Fallback) ---------- */
 const mem = {};
 function load(k,def){ try{ const v=localStorage.getItem(k); if(v!==null) return JSON.parse(v); }catch(e){} return k in mem ? mem[k] : def; }
 function save(k,v){ mem[k]=v; try{ localStorage.setItem(k, JSON.stringify(v)); }catch(e){} }
-const K_SEEN="wg1_seen_v2", K_STATS="wg1_stats_v2", K_CUSTOM="wg1_custom_v2";
+const K_SEEN="wg1_seen_v3", K_STATS="wg1_stats_v3", K_CUSTOM="wg1_custom_v2";
 let custom = load(K_CUSTOM, []);
 let stats = load(K_STATS, {q:{}, hist:[]});
-const allQ = () => BUILTIN.concat(custom);
+const allQ = () => BUILTIN.concat(custom.map(c=>TAGS[c.tag]?c:{...c,tag:"TX"}));
 
 /* ---------- Helfer ---------- */
 const $ = id => document.getElementById(id);
