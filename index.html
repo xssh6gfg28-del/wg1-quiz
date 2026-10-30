@@ -1,0 +1,539 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#1d5fd1">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="WG1 Quiz">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<link rel="icon" href="icons/icon-192.png">
+<title>WG1 Lern-Quiz</title>
+<style>
+:root{
+  --bg:#f6f7f9; --card:#ffffff; --text:#1c2430; --muted:#5d6877; --line:#dde2ea;
+  --accent:#1d5fd1; --accent-weak:#e6eefc; --ok:#17803d; --ok-bg:#e4f5ea; --bad:#b42318; --bad-bg:#fdeaea; --warn:#b54708;
+  --radius:12px;
+}
+@media (prefers-color-scheme:dark){
+  :root{--bg:#12161c; --card:#1b212a; --text:#e8ecf2; --muted:#9aa5b5; --line:#2c3441;
+  --accent:#6ea2ff; --accent-weak:#1f2d47; --ok:#5fd68a; --ok-bg:#16301f; --bad:#ff8a80; --bad-bg:#3a1b1b; --warn:#ffb86b;}
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;background:var(--bg);color:var(--text);line-height:1.5;
+  padding:max(16px,env(safe-area-inset-top)) max(16px,env(safe-area-inset-right)) max(24px,env(safe-area-inset-bottom)) max(16px,env(safe-area-inset-left))}
+.wrap{max-width:720px;margin:0 auto}
+h1{font-size:1.4rem;margin:6px 0 2px}
+h2{font-size:1.1rem;margin:0 0 10px}
+h3{font-size:.95rem;margin:14px 0 6px;color:var(--muted)}
+.sub{color:var(--muted);margin:0 0 14px;font-size:.92rem}
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:16px;margin-bottom:14px}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.tabs{display:flex;gap:6px;margin:10px 0 14px;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:4px}
+.tabs button{flex:1;font:inherit;font-weight:600;font-size:.92rem;border:none;background:none;color:var(--muted);padding:9px 6px;border-radius:9px;cursor:pointer}
+.tabs button[aria-selected="true"]{background:var(--accent-weak);color:var(--accent)}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin:8px 0 4px}
+.chip{border:1px solid var(--line);background:var(--card);color:var(--text);border-radius:999px;padding:7px 12px;font:inherit;font-size:.88rem;cursor:pointer}
+.chip[aria-pressed="true"]{background:var(--accent-weak);border-color:var(--accent);color:var(--accent);font-weight:600}
+.chip small{color:var(--muted);font-weight:400}
+button.btn{font:inherit;font-weight:600;border-radius:10px;border:1px solid var(--accent);background:var(--accent);color:#fff;padding:11px 18px;cursor:pointer}
+button.btn.secondary{background:transparent;color:var(--accent)}
+button.btn.danger{background:transparent;color:var(--bad);border-color:var(--bad)}
+button.btn.small{padding:6px 11px;font-size:.85rem}
+button.btn:disabled{opacity:.45;cursor:not-allowed}
+button.link{background:none;border:none;color:var(--accent);font:inherit;text-decoration:underline;cursor:pointer;padding:0}
+.stat{display:flex;gap:10px;flex-wrap:wrap;margin:6px 0 4px}
+.stat div{background:var(--accent-weak);border-radius:10px;padding:8px 14px;min-width:92px}
+.stat b{display:block;font-size:1.3rem}
+.stat span{font-size:.78rem;color:var(--muted)}
+label.check{display:flex;gap:10px;align-items:flex-start;cursor:pointer;margin:10px 0}
+label.check input{margin-top:5px;width:18px;height:18px}
+.seg{display:flex;gap:8px;margin:8px 0}
+.seg label{flex:1;border:2px solid var(--line);border-radius:10px;padding:10px 12px;cursor:pointer;font-size:.9rem}
+.seg input{display:none}
+.seg label:has(input:checked){border-color:var(--accent);background:var(--accent-weak)}
+.seg b{display:block}
+.seg small{color:var(--muted)}
+.field{display:flex;flex-direction:column;gap:4px;margin:8px 0}
+.field span{font-size:.82rem;color:var(--muted);font-weight:600}
+input[type=text],input[type=number],select,textarea{font:inherit;color:var(--text);background:var(--card);border:1px solid var(--line);border-radius:9px;padding:9px 11px;width:100%}
+textarea{min-height:64px;resize:vertical}
+.inline{display:flex;gap:10px;flex-wrap:wrap}
+.inline .field{flex:1;min-width:120px}
+.top{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:8px;font-size:.9rem;color:var(--muted)}
+.badge{background:var(--accent-weak);color:var(--accent);border-radius:999px;padding:3px 10px;font-size:.76rem;font-weight:600;white-space:nowrap}
+.timer{font-variant-numeric:tabular-nums;font-weight:700;color:var(--text)}
+.timer.low{color:var(--bad)}
+.bar{height:8px;background:var(--line);border-radius:99px;overflow:hidden;margin-bottom:14px}
+.bar i{display:block;height:100%;background:var(--accent);width:0;transition:width .25s}
+.q{font-size:1.08rem;font-weight:600;margin:0 0 14px}
+.opts{display:flex;flex-direction:column;gap:10px}
+.opt{display:flex;gap:12px;align-items:flex-start;text-align:left;width:100%;font:inherit;color:var(--text);background:var(--card);border:2px solid var(--line);border-radius:10px;padding:12px 14px;cursor:pointer}
+.opt:hover:not(:disabled){border-color:var(--accent)}
+.opt .k{flex:0 0 26px;height:26px;border-radius:7px;border:1.5px solid var(--line);display:grid;place-items:center;font-size:.8rem;font-weight:700;color:var(--muted)}
+.opt.sel{border-color:var(--accent);background:var(--accent-weak)}
+.opt.sel .k{background:var(--accent);border-color:var(--accent);color:#fff}
+.opt.ok{border-color:var(--ok);background:var(--ok-bg)}
+.opt.ok .k{background:var(--ok);border-color:var(--ok);color:#fff}
+.opt.bad{border-color:var(--bad);background:var(--bad-bg)}
+.opt.bad .k{background:var(--bad);border-color:var(--bad);color:#fff}
+.opt:disabled{cursor:default}
+.fb{margin-top:14px;padding:12px 14px;border-radius:10px;background:var(--accent-weak);font-size:.95rem}
+.fb.ok{background:var(--ok-bg)} .fb.bad{background:var(--bad-bg)}
+.fb b{display:block;margin-bottom:2px}
+.nav{display:flex;justify-content:space-between;gap:10px;margin-top:16px}
+.dots{display:flex;flex-wrap:wrap;gap:5px;margin-top:14px}
+.dots button{width:30px;height:30px;border-radius:8px;border:1px solid var(--line);background:var(--card);color:var(--muted);font:inherit;font-size:.78rem;cursor:pointer;padding:0}
+.dots button.done{background:var(--accent-weak);color:var(--accent);border-color:var(--accent)}
+.dots button.cur{outline:2px solid var(--accent);outline-offset:1px;color:var(--text);font-weight:700}
+.score{font-size:2.8rem;font-weight:800;line-height:1;margin:4px 0}
+.grade{display:inline-block;font-weight:700;border-radius:10px;padding:4px 12px;background:var(--accent-weak);color:var(--accent);margin:4px 0 8px}
+.topics{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px;margin-top:12px}
+.topics div{border:1px solid var(--line);border-radius:10px;padding:8px 12px;font-size:.86rem}
+.topics b{display:block;font-size:1.05rem}
+.rev{border-top:1px solid var(--line);padding:14px 0}
+.rev:first-child{border-top:none}
+.rev p{margin:4px 0}
+.tag-ok{color:var(--ok);font-weight:600} .tag-bad{color:var(--bad);font-weight:600}
+.hint{font-size:.82rem;color:var(--muted);margin-top:8px}
+.hidden{display:none !important}
+.meter{display:flex;align-items:center;gap:10px;margin:7px 0;font-size:.88rem}
+.meter .lab{flex:0 0 165px}
+.meter .trk{flex:1;height:10px;background:var(--line);border-radius:99px;overflow:hidden}
+.meter .trk i{display:block;height:100%;background:var(--ok)}
+.meter .trk i.mid{background:var(--warn)} .meter .trk i.low{background:var(--bad)}
+.meter .val{flex:0 0 74px;text-align:right;color:var(--muted);font-variant-numeric:tabular-nums}
+.item{border-top:1px solid var(--line);padding:10px 0;display:flex;gap:10px;justify-content:space-between;align-items:flex-start}
+.item:first-child{border-top:none}
+.item p{margin:0;font-size:.92rem}
+.item small{color:var(--muted)}
+.msg{font-size:.88rem;margin:8px 0 0}
+.msg.ok{color:var(--ok)} .msg.bad{color:var(--bad)}
+@media (max-width:480px){.meter .lab{flex-basis:110px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>WG1 Lern-Quiz</h1>
+  <p class="sub">Wirtschaftliche Grundlagen 1 · Tag 1–7</p>
+
+  <nav class="tabs" id="tabs" role="tablist">
+    <button role="tab" data-tab="practice" aria-selected="true">Üben</button>
+    <button role="tab" data-tab="stats" aria-selected="false">Statistik</button>
+    <button role="tab" data-tab="questions" aria-selected="false">Fragen</button>
+  </nav>
+
+  <!-- ÜBEN -->
+  <section id="practice">
+    <div class="card">
+      <h2>Dein Stand</h2>
+      <div class="stat">
+        <div><b id="stPool">–</b><span>Fragen im Pool</span></div>
+        <div><b id="stSeen">–</b><span>schon gesehen</span></div>
+        <div><b id="stNew">–</b><span>noch neu</span></div>
+      </div>
+      <p class="hint">Neue Tests bevorzugen Fragen, die du noch nicht hattest, danach deine schwächsten. Sind alle durch, startet der Zyklus von vorn.
+        <button class="link" id="resetSeen" type="button">Gesehen-Stand zurücksetzen</button></p>
+    </div>
+
+    <div class="card">
+      <h2>Neuer Test</h2>
+      <div class="seg" id="modeSeg">
+        <label><input type="radio" name="mode" value="learn" checked><b>Lernen</b><small>Sofort-Feedback + Erklärung</small></label>
+        <label><input type="radio" name="mode" value="exam"><b>Prüfung</b><small>Timer, Note, Auswertung am Ende</small></label>
+      </div>
+      <div class="inline">
+        <label class="field"><span>Anzahl Fragen</span>
+          <select id="size"><option>10</option><option selected>25</option><option>40</option><option>60</option></select></label>
+        <label class="field" id="minWrap"><span>Zeit (Minuten)</span><input type="number" id="minutes" min="1" max="180" value="30"></label>
+      </div>
+      <h3>Themen</h3>
+      <div class="chips" id="chips"></div>
+      <div class="row" style="margin-top:14px"><button class="btn" id="go" type="button">Test starten</button><span class="hint" id="goInfo" style="margin:0"></span></div>
+    </div>
+  </section>
+
+  <!-- STATISTIK -->
+  <section id="stats" class="hidden">
+    <div class="card">
+      <h2>Gesamt</h2>
+      <div class="stat" id="sumStat"></div>
+    </div>
+    <div class="card">
+      <h2>Trefferquote pro Thema</h2>
+      <div id="tagMeters"></div>
+      <p class="hint">Berechnet aus allen bisher beantworteten Fragen. Grau/leer = noch keine Daten.</p>
+    </div>
+    <div class="card">
+      <div class="row" style="justify-content:space-between"><h2 style="margin:0">Schwächste Fragen</h2>
+        <button class="btn small" id="trainWeak" type="button">Schwächen trainieren</button></div>
+      <div id="weakList"></div>
+    </div>
+    <div class="card">
+      <h2>Letzte Tests</h2>
+      <div id="hist"></div>
+      <div style="margin-top:12px"><button class="btn danger small" id="clearStats" type="button">Statistik löschen</button></div>
+    </div>
+  </section>
+
+  <!-- EIGENE FRAGEN -->
+  <section id="questions" class="hidden">
+    <div class="card">
+      <h2>Eigene Frage hinzufügen</h2>
+      <p class="sub" style="margin-bottom:6px">Z. B. für spätere Tage (WG1 Tag 8–10) oder Stoff aus dem Unterricht. Sie kommen automatisch in den Pool.</p>
+      <label class="field"><span>Thema</span><select id="nTag"></select></label>
+      <label class="field"><span>Frage</span><textarea id="nQ" placeholder="Frage"></textarea></label>
+      <label class="field"><span>Richtige Antwort</span><input type="text" id="nC"></label>
+      <label class="field"><span>Falsche Antwort 1</span><input type="text" id="nW0"></label>
+      <label class="field"><span>Falsche Antwort 2</span><input type="text" id="nW1"></label>
+      <label class="field"><span>Falsche Antwort 3</span><input type="text" id="nW2"></label>
+      <label class="field"><span>Erklärung (optional)</span><textarea id="nE"></textarea></label>
+      <div class="row"><button class="btn" id="addQ" type="button">Frage speichern</button></div>
+      <p class="msg hidden" id="addMsg"></p>
+    </div>
+    <div class="card">
+      <h2>Eigene Fragen (<span id="cCount">0</span>)</h2>
+      <div id="cList"></div>
+      <h3>Sichern &amp; Importieren</h3>
+      <div class="row">
+        <button class="btn secondary small" id="exp" type="button">Exportieren (Datei)</button>
+        <button class="btn secondary small" id="copy" type="button">In Zwischenablage</button>
+        <label class="btn secondary small" style="cursor:pointer">Importieren<input type="file" id="imp" accept=".json,application/json" class="hidden"></label>
+      </div>
+      <p class="hint">Das Importformat: eine JSON-Liste mit Einträgen <code>{"tag":"T3","q":"…","correct":"…","wrong":["…","…","…"],"exp":"…"}</code>.</p>
+      <p class="msg hidden" id="ioMsg"></p>
+    </div>
+  </section>
+
+  <!-- TEST -->
+  <section id="test" class="hidden">
+    <div class="card">
+      <div class="top"><span id="qCount"></span><span class="timer hidden" id="timer"></span><span class="badge" id="qTag"></span></div>
+      <div class="bar"><i id="bar"></i></div>
+      <p class="q" id="qText"></p>
+      <div class="opts" id="opts"></div>
+      <div id="fb" class="fb hidden" aria-live="polite"></div>
+      <div class="nav">
+        <button class="btn secondary" id="prev" type="button">← Zurück</button>
+        <button class="btn" id="next" type="button">Weiter →</button>
+      </div>
+      <div class="dots hidden" id="dots"></div>
+      <p class="hint" id="kbHint">Tastatur: 1–4 oder A–D wählen · Enter/→ weiter · ← zurück</p>
+    </div>
+    <button class="link" id="abort" type="button">Test abbrechen</button>
+  </section>
+
+  <!-- ERGEBNIS -->
+  <section id="result" class="hidden">
+    <div class="card">
+      <h2 id="rTitle">Ergebnis</h2>
+      <div class="score" id="rScore"></div>
+      <div class="grade hidden" id="rGrade"></div>
+      <p id="rMsg" class="sub" style="margin-bottom:6px"></p>
+      <div class="topics" id="rTopics"></div>
+      <div class="row" style="margin-top:16px">
+        <button class="btn" id="again" type="button">Neuer Test</button>
+        <button class="btn secondary" id="redo" type="button">Nur falsche wiederholen</button>
+        <button class="btn secondary" id="home" type="button">Startseite</button>
+      </div>
+    </div>
+    <div class="card">
+      <div class="row" style="justify-content:space-between">
+        <h2 style="margin:0">Durchsicht</h2>
+        <label class="check" style="margin:0"><input type="checkbox" id="onlyWrong"> <span>nur falsche</span></label>
+      </div>
+      <div id="review"></div>
+    </div>
+  </section>
+</div>
+
+<script src="data.js"></script>
+<script>
+const TAGS = {
+  T1:"Tag 1 · Bedarf & Markt", T2:"Tag 2 · Volkswirtschaft", T3:"Tag 3 · Verträge & Recht",
+  T4:"Tag 4 · Angebote & Kalkulation", T5:"Tag 5 · Wirtschaftlichkeit", T6:"Tag 6 · Markt & Marketing",
+  T7:"Tag 7 · Controlling & Daten", TX:"Eigene Fragen"
+};
+const BUILTIN = RAW.map((r,i)=>({id:"b"+i, tag:r[0], q:r[1], correct:r[2], wrong:r.slice(3,6), exp:r[6]}));
+
+/* ---------- Speicher (localStorage mit Fallback) ---------- */
+const mem = {};
+function load(k,def){ try{ const v=localStorage.getItem(k); if(v!==null) return JSON.parse(v); }catch(e){} return k in mem ? mem[k] : def; }
+function save(k,v){ mem[k]=v; try{ localStorage.setItem(k, JSON.stringify(v)); }catch(e){} }
+const K_SEEN="wg1_seen_v2", K_STATS="wg1_stats_v2", K_CUSTOM="wg1_custom_v2";
+let custom = load(K_CUSTOM, []);
+let stats = load(K_STATS, {q:{}, hist:[]});
+const allQ = () => BUILTIN.concat(custom);
+
+/* ---------- Helfer ---------- */
+const $ = id => document.getElementById(id);
+const esc = s => String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+function shuffle(a){ a=a.slice(); for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];} return a; }
+function arm(btn, label, fn){ // Zwei-Schritt-Bestätigung (ohne confirm())
+  let armed=false, t, orig=btn.textContent;
+  btn.onclick=()=>{ if(!armed){ armed=true; btn.textContent=label; t=setTimeout(()=>{armed=false;btn.textContent=orig;},3500); } else { clearTimeout(t); armed=false; btn.textContent=orig; fn(); } };
+}
+function flash(id, text, ok){ const m=$(id); m.textContent=text; m.className="msg "+(ok?"ok":"bad"); setTimeout(()=>m.classList.add("hidden"),5000); }
+function pctClass(p){ return p>=75?"":(p>=50?"mid":"low"); }
+
+/* ---------- Navigation ---------- */
+let tab="practice";
+function showSection(id){ ["practice","stats","questions","test","result"].forEach(s=>$(s).classList.toggle("hidden", s!==id)); window.scrollTo(0,0); }
+function setTab(t){
+  tab=t; $("tabs").classList.remove("hidden");
+  document.querySelectorAll("#tabs button").forEach(b=>b.setAttribute("aria-selected", b.dataset.tab===t));
+  showSection(t); if(t==="practice") renderPractice(); if(t==="stats") renderStats(); if(t==="questions") renderQuestions();
+}
+document.querySelectorAll("#tabs button").forEach(b=>b.onclick=()=>setTab(b.dataset.tab));
+
+/* ---------- ÜBEN ---------- */
+const selTags = new Set(Object.keys(TAGS));
+let minutesTouched=false;
+function mode(){ return document.querySelector('input[name=mode]:checked').value; }
+function poolFor(tags){ return allQ().filter(p=>tags.has(p.tag)); }
+function defaultMinutes(n){ return Math.max(1, Math.round(n*1.2)); }
+function renderPractice(){
+  const pool = allQ(), seen = new Set(load(K_SEEN, []));
+  $("stPool").textContent = pool.length;
+  $("stSeen").textContent = pool.filter(p=>seen.has(p.id)).length;
+  $("stNew").textContent = pool.filter(p=>!seen.has(p.id)).length;
+  const chips=$("chips"); chips.innerHTML="";
+  Object.keys(TAGS).forEach(t=>{
+    const n = pool.filter(p=>p.tag===t).length; if(!n) return;
+    const b=document.createElement("button"); b.type="button"; b.className="chip"; b.setAttribute("aria-pressed", selTags.has(t));
+    b.innerHTML=esc(TAGS[t])+" <small>("+n+")</small>";
+    b.onclick=()=>{ selTags.has(t)?selTags.delete(t):selTags.add(t); renderPractice(); };
+    chips.appendChild(b);
+  });
+  const p = poolFor(selTags), want = +$("size").value, size = Math.min(want, p.length);
+  $("minWrap").classList.toggle("hidden", mode()!=="exam");
+  if(!minutesTouched) $("minutes").value = defaultMinutes(size||want);
+  $("go").disabled = p.length===0;
+  $("go").textContent = (mode()==="exam"?"Prüfung starten":"Test starten")+" ("+size+" Fragen)";
+  const fresh = p.filter(q=>!seen.has(q.id)).length;
+  $("goInfo").textContent = p.length ? (fresh>=size ? "Alle Fragen neu für dich." : fresh+" neue, Rest nach Schwäche aufgefüllt.") : "Wähle mindestens ein Thema.";
+}
+$("size").onchange = ()=>{ minutesTouched=false; renderPractice(); };
+$("minutes").oninput = ()=>{ minutesTouched=true; };
+document.querySelectorAll('input[name=mode]').forEach(r=>r.onchange=renderPractice);
+$("resetSeen").onclick = ()=>{ save(K_SEEN, []); renderPractice(); };
+
+function weakness(id){ const s=stats.q[id]; if(!s) return 0; const n=s.r+s.w; return n? s.w/n : 0; }
+function pickQuestions(tags, size){
+  const pool = poolFor(tags); size = Math.min(size, pool.length);
+  let seen = new Set(load(K_SEEN, []));
+  let fresh = pool.filter(p=>!seen.has(p.id));
+  if(!fresh.length){ pool.forEach(p=>seen.delete(p.id)); save(K_SEEN,[...seen]); fresh = pool.slice(); }
+  let chosen = shuffle(fresh).slice(0,size);
+  if(chosen.length<size){
+    const rest = pool.filter(p=>!chosen.includes(p)).map(p=>({p, s:weakness(p.id)+Math.random()*0.3})).sort((a,b)=>b.s-a.s).map(x=>x.p);
+    chosen = chosen.concat(rest.slice(0,size-chosen.length));
+  }
+  return shuffle(chosen);
+}
+$("go").onclick = ()=> startTest(pickQuestions(selTags, +$("size").value), mode(), mode()==="exam" ? Math.max(1,+$("minutes").value||defaultMinutes(+$("size").value)) : 0);
+
+/* ---------- TEST ---------- */
+let test=null, tick=null;
+const LET=["A","B","C","D"];
+function startTest(questions, m, minutes){
+  if(!questions.length) return;
+  const seen=new Set(load(K_SEEN,[])); questions.forEach(p=>seen.add(p.id)); save(K_SEEN,[...seen]);
+  test={ mode:m, idx:0, items:questions.map(p=>({p,opts:shuffle([p.correct,...p.wrong]),answer:null})), end:0, confirmSubmit:false };
+  clearInterval(tick);
+  $("tabs").classList.add("hidden"); showSection("test");
+  const exam = m==="exam";
+  $("timer").classList.toggle("hidden", !exam); $("dots").classList.toggle("hidden", !exam);
+  $("kbHint").textContent = exam ? "Prüfungsmodus: kein Feedback, du kannst springen und Antworten ändern." : "Tastatur: 1–4 oder A–D wählen · Enter/→ weiter · ← zurück";
+  if(exam){ test.end = Date.now()+minutes*60000; tick=setInterval(updateTimer,500); updateTimer(); }
+  renderQ();
+}
+function updateTimer(){
+  if(!test||test.mode!=="exam") return;
+  const left = Math.max(0, Math.round((test.end-Date.now())/1000));
+  $("timer").textContent = "⏱ "+String(Math.floor(left/60)).padStart(2,"0")+":"+String(left%60).padStart(2,"0");
+  $("timer").classList.toggle("low", left<=60);
+  if(left===0){ clearInterval(tick); finish(true); }
+}
+function renderQ(){
+  const exam=test.mode==="exam", it=test.items[test.idx], n=test.items.length;
+  $("qCount").textContent="Frage "+(test.idx+1)+" / "+n;
+  $("qTag").textContent=TAGS[it.p.tag];
+  $("bar").style.width=(test.items.filter(x=>x.answer!==null).length/n*100)+"%";
+  $("qText").textContent=it.p.q;
+  const locked = !exam && it.answer!==null;
+  const box=$("opts"); box.innerHTML="";
+  it.opts.forEach((o,i)=>{
+    const b=document.createElement("button"); b.type="button"; b.className="opt"; b.disabled=locked;
+    b.innerHTML='<span class="k">'+LET[i]+'</span><span></span>'; b.lastChild.textContent=o;
+    if(locked){ if(o===it.p.correct) b.classList.add("ok"); else if(i===it.answer) b.classList.add("bad"); }
+    else if(it.answer===i) b.classList.add("sel");
+    b.onclick=()=>choose(i); box.appendChild(b);
+  });
+  const fb=$("fb");
+  if(locked){
+    const right=it.opts[it.answer]===it.p.correct;
+    fb.className="fb "+(right?"ok":"bad");
+    fb.innerHTML="<b>"+(right?"Richtig!":"Leider falsch.")+"</b>"+(right?"":"Richtig wäre: "+esc(it.p.correct)+"<br>")+esc(it.p.exp||"");
+  } else fb.className="fb hidden";
+  $("prev").disabled=test.idx===0;
+  const last=test.idx===n-1;
+  $("next").textContent = last ? (exam?"Abgeben ✓":"Auswerten ✓") : "Weiter →";
+  $("next").disabled = exam ? false : it.answer===null;
+  if(exam){
+    $("dots").innerHTML=""; test.items.forEach((x,i)=>{
+      const d=document.createElement("button"); d.type="button"; d.textContent=i+1;
+      if(x.answer!==null) d.classList.add("done"); if(i===test.idx) d.classList.add("cur");
+      d.onclick=()=>{ test.idx=i; test.confirmSubmit=false; renderQ(); }; $("dots").appendChild(d);
+    });
+  }
+}
+function choose(i){
+  const it=test.items[test.idx];
+  if(test.mode!=="exam" && it.answer!==null) return;
+  it.answer=i; test.confirmSubmit=false; renderQ();
+}
+function next(){
+  const exam=test.mode==="exam", last=test.idx===test.items.length-1;
+  if(!exam && test.items[test.idx].answer===null) return;
+  if(last){
+    if(exam){
+      const open=test.items.filter(x=>x.answer===null).length;
+      if(open && !test.confirmSubmit){ test.confirmSubmit=true; $("next").textContent=open+" offen – nochmal tippen zum Abgeben"; return; }
+    }
+    finish(false); return;
+  }
+  test.idx++; test.confirmSubmit=false; renderQ();
+}
+function prev(){ if(test.idx>0){ test.idx--; test.confirmSubmit=false; renderQ(); } }
+$("next").onclick=next; $("prev").onclick=prev;
+$("abort").onclick=()=>{ clearInterval(tick); test=null; setTab("practice"); };
+
+/* ---------- ERGEBNIS ---------- */
+const isRight = it => it.answer!==null && it.opts[it.answer]===it.p.correct;
+function grade(p){ return p>=92?["1","sehr gut"]:p>=81?["2","gut"]:p>=67?["3","befriedigend"]:p>=50?["4","ausreichend"]:p>=30?["5","mangelhaft"]:["6","ungenügend"]; }
+function finish(timeUp){
+  clearInterval(tick);
+  const n=test.items.length, ok=test.items.filter(isRight).length, pct=Math.round(ok/n*100), exam=test.mode==="exam";
+  // Statistik schreiben (nur beantwortete Fragen)
+  const per={}; test.items.forEach(it=>{ const t=it.p.tag; per[t]=per[t]||{ok:0,n:0}; per[t].n++; if(isRight(it)) per[t].ok++;
+    if(it.answer!==null){ const s=stats.q[it.p.id]||(stats.q[it.p.id]={r:0,w:0}); if(isRight(it)) s.r++; else s.w++; } });
+  stats.hist.unshift({ts:Date.now(), mode:test.mode, ok, n, pct}); stats.hist=stats.hist.slice(0,50);
+  save(K_STATS, stats);
+  $("rTitle").textContent = exam ? (timeUp?"Prüfung – Zeit abgelaufen":"Prüfung – Ergebnis") : "Ergebnis";
+  $("rScore").textContent = ok+" / "+n+"  ("+pct+" %)";
+  const g=$("rGrade"); g.classList.toggle("hidden", !exam);
+  if(exam){ const [num,txt]=grade(pct); g.textContent="Note "+num+" – "+txt; }
+  $("rMsg").textContent = exam ? "Notenschlüssel: übliche IHK-Stufen (ab 92 % = 1, 81 % = 2, 67 % = 3, 50 % = 4, 30 % = 5). Deine echte Prüfung kann abweichen."
+    : (pct>=90?"Sehr stark! Das sitzt.":pct>=75?"Gut – noch ein paar Lücken schließen.":pct>=50?"Solide Basis, die falschen Fragen lohnen sich zu wiederholen.":"Schau dir die Erklärungen unten an und starte danach einen neuen Test.");
+  $("rTopics").innerHTML=Object.keys(per).sort().map(t=>"<div><b>"+per[t].ok+" / "+per[t].n+"</b>"+esc(TAGS[t])+"</div>").join("");
+  $("redo").disabled = ok===n; $("onlyWrong").checked=false;
+  $("tabs").classList.add("hidden"); renderReview(); showSection("result");
+}
+function renderReview(){
+  const only=$("onlyWrong").checked;
+  const html=test.items.map((it,i)=>({it,i})).filter(x=>!only||!isRight(x.it)).map(({it,i})=>{
+    const right=isRight(it), given = it.answer===null ? "– nicht beantwortet –" : it.opts[it.answer];
+    return '<div class="rev"><p><b>'+(i+1)+'. '+esc(it.p.q)+'</b> <span class="badge">'+esc(TAGS[it.p.tag])+'</span></p>'+
+      '<p>Deine Antwort: <span class="'+(right?'tag-ok':'tag-bad')+'">'+esc(given)+(right?' ✓':' ✗')+'</span></p>'+
+      (right?'':'<p>Richtig: <span class="tag-ok">'+esc(it.p.correct)+'</span></p>')+
+      '<p class="hint" style="margin-top:2px">'+esc(it.p.exp||"")+'</p></div>';
+  }).join("");
+  $("review").innerHTML = html || '<p class="sub">Alles richtig – nichts zu zeigen. 🎉</p>';
+}
+$("onlyWrong").onchange=renderReview;
+$("again").onclick=()=>{ const m=test.mode, n=test.items.length, mins=m==="exam"?Math.max(1,+$("minutes").value||defaultMinutes(n)):0; startTest(pickQuestions(selTags,n), m, mins); };
+$("redo").onclick=()=>{ const w=test.items.filter(it=>!isRight(it)).map(it=>it.p); if(w.length) startTest(shuffle(w), "learn", 0); };
+$("home").onclick=()=>{ test=null; setTab("practice"); };
+
+/* ---------- STATISTIK ---------- */
+function renderStats(){
+  const h=stats.hist, tot=h.length, avg = tot? Math.round(h.reduce((a,x)=>a+x.pct,0)/tot):0;
+  const answered = Object.values(stats.q).reduce((a,s)=>a+s.r+s.w,0), right = Object.values(stats.q).reduce((a,s)=>a+s.r,0);
+  $("sumStat").innerHTML = '<div><b>'+tot+'</b><span>Tests gemacht</span></div><div><b>'+(tot?avg+" %":"–")+'</b><span>Ø Ergebnis</span></div>'+
+    '<div><b>'+answered+'</b><span>Antworten gesamt</span></div><div><b>'+(answered?Math.round(right/answered*100)+" %":"–")+'</b><span>Trefferquote</span></div>';
+  const pool=allQ(), box=$("tagMeters"); box.innerHTML="";
+  Object.keys(TAGS).forEach(t=>{
+    const qs=pool.filter(p=>p.tag===t); if(!qs.length) return;
+    let r=0,w=0; qs.forEach(p=>{ const s=stats.q[p.id]; if(s){ r+=s.r; w+=s.w; } });
+    const n=r+w, pc=n?Math.round(r/n*100):0, d=document.createElement("div"); d.className="meter";
+    d.innerHTML='<span class="lab">'+esc(TAGS[t])+'</span><span class="trk"><i class="'+(n?pctClass(pc):"")+'" style="width:'+(n?pc:0)+'%"></i></span><span class="val">'+(n?pc+" % ("+n+")":"–")+'</span>';
+    box.appendChild(d);
+  });
+  const weak = pool.filter(p=>stats.q[p.id]&&stats.q[p.id].w>0).map(p=>({p,s:stats.q[p.id]})).sort((a,b)=>weakness(b.p.id)-weakness(a.p.id)||b.s.w-a.s.w).slice(0,10);
+  $("trainWeak").disabled = !weak.length;
+  $("weakList").innerHTML = weak.length ? weak.map(({p,s})=>'<div class="item"><p>'+esc(p.q)+'<br><small>'+esc(TAGS[p.tag])+' · '+s.w+"× falsch, "+s.r+"× richtig</small></p></div>").join("") : '<p class="sub" style="margin-top:6px">Noch keine falsch beantworteten Fragen. Mach ein paar Tests.</p>';
+  $("hist").innerHTML = h.length ? h.slice(0,10).map(x=>{ const d=new Date(x.ts); return '<div class="item"><p>'+d.toLocaleDateString("de-DE")+" "+d.toLocaleTimeString("de-DE",{hour:"2-digit",minute:"2-digit"})+' · '+(x.mode==="exam"?"Prüfung":"Lernen")+'</p><p><b>'+x.ok+" / "+x.n+"</b> ("+x.pct+" %)</p></div>"; }).join("") : '<p class="sub">Noch keine Tests.</p>';
+  arm($("clearStats"), "Sicher? Nochmal tippen", ()=>{ stats={q:{},hist:[]}; save(K_STATS,stats); renderStats(); });
+}
+$("trainWeak").onclick=()=>{
+  const weak=allQ().filter(p=>stats.q[p.id]&&stats.q[p.id].w>0).sort((a,b)=>weakness(b.id)-weakness(a.id)).slice(0,+$("size").value);
+  if(weak.length) startTest(shuffle(weak),"learn",0);
+};
+
+/* ---------- EIGENE FRAGEN ---------- */
+function renderQuestions(){
+  $("nTag").innerHTML = Object.keys(TAGS).map(t=>'<option value="'+t+'"'+(t==="TX"?" selected":"")+'>'+esc(TAGS[t])+'</option>').join("");
+  $("cCount").textContent=custom.length;
+  const box=$("cList"); box.innerHTML="";
+  if(!custom.length){ box.innerHTML='<p class="sub">Noch keine eigenen Fragen.</p>'; return; }
+  custom.forEach(c=>{
+    const d=document.createElement("div"); d.className="item";
+    d.innerHTML='<p>'+esc(c.q)+'<br><small>'+esc(TAGS[c.tag]||c.tag)+' · richtig: '+esc(c.correct)+'</small></p>';
+    const b=document.createElement("button"); b.type="button"; b.className="btn danger small"; b.textContent="Löschen";
+    arm(b,"Sicher?",()=>{ custom=custom.filter(x=>x.id!==c.id); save(K_CUSTOM,custom); renderQuestions(); });
+    d.appendChild(b); box.appendChild(d);
+  });
+}
+function valid(o){
+  if(!o||typeof o.q!=="string"||typeof o.correct!=="string"||!Array.isArray(o.wrong)||o.wrong.length!==3) return false;
+  const all=[o.correct,...o.wrong].map(x=>String(x).trim().toLowerCase());
+  return o.q.trim() && all.every(Boolean) && new Set(all).size===4;
+}
+$("addQ").onclick=()=>{
+  const o={tag:$("nTag").value,q:$("nQ").value.trim(),correct:$("nC").value.trim(),wrong:[$("nW0").value.trim(),$("nW1").value.trim(),$("nW2").value.trim()],exp:$("nE").value.trim()};
+  if(!valid(o)){ flash("addMsg","Bitte Frage, vier verschiedene Antworten (1 richtige + 3 falsche) ausfüllen.",false); $("addMsg").classList.remove("hidden"); return; }
+  custom.push({...o,id:"c"+Date.now().toString(36)+Math.random().toString(36).slice(2,5)}); save(K_CUSTOM,custom);
+  ["nQ","nC","nW0","nW1","nW2","nE"].forEach(i=>$(i).value="");
+  renderQuestions(); $("addMsg").classList.remove("hidden"); flash("addMsg","Gespeichert – die Frage ist jetzt im Pool.",true);
+};
+const exportJson = () => JSON.stringify(custom.map(({tag,q,correct,wrong,exp})=>({tag,q,correct,wrong,exp})), null, 2);
+$("exp").onclick=()=>{
+  if(!custom.length){ $("ioMsg").classList.remove("hidden"); flash("ioMsg","Keine eigenen Fragen zum Exportieren.",false); return; }
+  try{ const a=document.createElement("a"); a.href=URL.createObjectURL(new Blob([exportJson()],{type:"application/json"})); a.download="wg1-eigene-fragen.json"; document.body.appendChild(a); a.click(); a.remove(); }
+  catch(e){ $("ioMsg").classList.remove("hidden"); flash("ioMsg","Download nicht möglich – nutze „In Zwischenablage“.",false); }
+};
+$("copy").onclick=async()=>{
+  $("ioMsg").classList.remove("hidden");
+  if(!custom.length){ flash("ioMsg","Keine eigenen Fragen zum Kopieren.",false); return; }
+  try{ await navigator.clipboard.writeText(exportJson()); flash("ioMsg","In die Zwischenablage kopiert.",true); }catch(e){ flash("ioMsg","Kopieren nicht erlaubt.",false); }
+};
+$("imp").onchange=async e=>{
+  const f=e.target.files[0]; if(!f) return; $("ioMsg").classList.remove("hidden");
+  try{
+    const arr=JSON.parse(await f.text()); if(!Array.isArray(arr)) throw 0;
+    const known=new Set(allQ().map(x=>x.q.trim().toLowerCase())); let add=0, skip=0;
+    arr.forEach(o=>{ if(valid(o)&&!known.has(o.q.trim().toLowerCase())){ custom.push({tag:TAGS[o.tag]?o.tag:"TX",q:o.q.trim(),correct:o.correct.trim(),wrong:o.wrong.map(x=>String(x).trim()),exp:(o.exp||"").trim(),id:"c"+Date.now().toString(36)+Math.random().toString(36).slice(2,6)}); known.add(o.q.trim().toLowerCase()); add++; } else skip++; });
+    save(K_CUSTOM,custom); renderQuestions(); $("ioMsg").classList.remove("hidden"); flash("ioMsg",add+" importiert, "+skip+" übersprungen (ungültig oder schon vorhanden).",add>0);
+  }catch(err){ flash("ioMsg","Datei konnte nicht gelesen werden (kein gültiges JSON).",false); }
+  e.target.value="";
+};
+
+/* ---------- Tastatur ---------- */
+document.addEventListener("keydown", e=>{
+  if($("test").classList.contains("hidden")||!test) return;
+  if(/INPUT|TEXTAREA|SELECT/.test(document.activeElement.tagName)) return;
+  const k=e.key.toLowerCase(), map={"1":0,"2":1,"3":2,"4":3,"a":0,"b":1,"c":2,"d":3};
+  if(k in map) choose(map[k]); else if(k==="enter"||k==="arrowright") next(); else if(k==="arrowleft") prev();
+});
+
+/* ---------- Start + Service Worker ---------- */
+setTab("practice");
+if("serviceWorker" in navigator && location.protocol.startsWith("http")){
+  window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}));
+}
+</script>
+</body>
+</html>
